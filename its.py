@@ -95,13 +95,13 @@ class ITS:
                     }
                 ),timeout=5
             )
-            self.last_request_response = resp.read()
         except Exception as e:
             self.last_request_result = False
             systemd.journal.send(time.strftime('%Y-%m-%d  %H:%M:%S',time.localtime(self.last_check_time)) +
                   " Reconnect Request Sent Error.")
             return False
         self.last_request_result = True
+        self.last_request_response = resp.read().decode('GB2312')
         systemd.journal.send(time.strftime('%Y-%m-%d  %H:%M:%S',time.localtime(self.last_check_time)) +
                   " Reconnect Request Sent Without Error.")
         return True
@@ -176,6 +176,7 @@ class WebService:
                                                  time.localtime((self.its.lost_limit - self.its.lost_count) * 5
                                                                 + time.time()))
         })
+        return True
 
     def on_post(self, req, resp):
         if self.its.connect('connect'):
@@ -191,6 +192,7 @@ class WebService:
                                                  time.localtime((self.its.lost_limit - self.its.lost_count) * 5
                                                                 + time.time()))
         })
+        return True
 
 its = ITS()
 app = falcon.API()
