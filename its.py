@@ -4,6 +4,7 @@
 import cookielib
 import re
 import urllib2
+import urllib
 import time
 import math
 import threading
@@ -56,7 +57,7 @@ class ITS:
         self.lost_count = 0
         self.lost_limit = 1
         self.check_url = ['http://plumz.me/',
-                          'http://i.catofes.com/']
+                          'http://ipv4.i.catofes.com/']
         self.lock = threading.Lock()
 
     def c_lock(func):
@@ -81,8 +82,8 @@ class ITS:
             self.last_request_time = time.time()
         try:
             resp = urllib2.urlopen(
-                "https://162.105.129.65:5428/ipgatewayofpku",
-                urllib2.urlencode(
+                "https://its.pku.edu.cn:5428/ipgatewayofpku",
+                urllib.urlencode(
                     {
                         "uid": "gwxpwjz",
                         "password": "lijiao214",
@@ -90,8 +91,7 @@ class ITS:
                         "operation": operation,
                         "timeout": "1"
                     }
-                ),
-                timeout=3
+                ),timeout=5
             )
             self.last_request_response = resp.read()
         except Exception as e:
