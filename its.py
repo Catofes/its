@@ -172,7 +172,8 @@ class WebService:
             'request_time': time.strftime('%Y-%m-%d  %H:%M:%S',time.localtime(self.its.last_request_time)),
             'request_response': self.its.last_request_response,
             'next_reconnect_time': time.strftime('%Y-%m-%d  %H:%M:%S',
-                                                 time.localtime(self.its.lost_limit*5 + self.its.last_request_time))
+                                                 time.localtime((self.its.lost_limit - self.its.lost_count) * 5
+                                                                + time.time()))
         })
 
     def on_put(self, req, resp):
@@ -186,7 +187,8 @@ class WebService:
             'request_time': time.strftime('%Y-%m-%d  %H:%M:%S',time.localtime(self.its.last_request_time)),
             'request_response': self.its.last_request_response,
             'next_reconnect_time': time.strftime('%Y-%m-%d  %H:%M:%S',
-                                                 time.localtime(self.its.lost_limit*5 + self.its.last_request_time))
+                                                 time.localtime((self.its.lost_limit - self.its.lost_count) * 5
+                                                                + time.time()))
         })
 
 its = ITS()
