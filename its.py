@@ -3,10 +3,9 @@
 import mechanize
 import cookielib
 import re
-import urllib
+import urllib2
 import time
 import math
-import thread
 import threading
 import falcon
 import json
@@ -33,7 +32,7 @@ def web_login():
     m = re.search(r'unescape\(\"[0-9A-Za-z%]*\"\)', data, re.M)
     if m is None:
         return False
-    key = urllib.unquote(m.group()[10:-2])
+    key = urllib2.unquote(m.group()[10:-2])
     print key
 
     br.select_form('lif')
@@ -56,7 +55,7 @@ class ITS:
         self.last_request_result = True
         self.lost_count = 0
         self.lost_limit = 1
-        self.check_url = ['http://plumz.me/generate_204',
+        self.check_url = ['http://plumz.me/',
                           'http://i.catofes.com/']
         self.lock = threading.Lock()
 
@@ -81,9 +80,9 @@ class ITS:
         if op == 'connect':
             self.last_request_time = time.time()
         try:
-            resp = urllib.request.urlopen(
+            resp = urllib2.urlopen(
                 "https://162.105.129.65:5428/ipgatewayofpku",
-                urllib.parse.urlencode(
+                urllib2.urlencode(
                     {
                         "uid": "gwxpwjz",
                         "password": "lijiao214",
@@ -110,8 +109,8 @@ class ITS:
         self.last_check_result = False
         for url in self.check_url:
             try:
-                resp = urllib.request.urlopen(
-                    self.check_url,
+                resp = urllib2.urlopen(
+                    url,
                     timeout=3
                 )
             except Exception as e:
@@ -197,6 +196,7 @@ app.add_route('/connect', WebService(its))
 thread1 = MyThread(its)
 
 if __name__ == '__main__':
+    thread1.daemon = True
     thread1.start()
     httpd = simple_server.make_server('127.0.0.1', 8000, app)
     httpd.serve_forever()

@@ -1,0 +1,11 @@
+[Unit]
+Description=VPN-httpd Service
+
+[Service]
+Type=simple
+ExecStart=/root/its.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
