@@ -177,7 +177,7 @@ class WebService:
                                                                 + time.time()))
         })
 
-    def on_put(self, req, resp):
+    def on_post(self, req, resp):
         if self.its.connect('connect'):
             resp.status = falcon.HTTP_200
         else:

@@ -25,7 +25,7 @@ function getinfo() {
     $.ajax({
         url: "http://atom.catofes.com:8000/connect",
         method: 'GET',
-        timeout: 1000
+        timeout: 10000
     }).done(function (data) {
         setInfo(data)
     }).fail(function (data) {
@@ -37,8 +37,8 @@ function connect() {
     $("#loading_dialog").modal('show');
     $.ajax({
         url: "http://atom.catofes.com:8000/connect",
-        method: 'PUT',
-        timeout: 1000
+        method: 'POST',
+        timeout: 10000
     }).done(function(data){
         setInfo(data)
     }).fail(function(data){
