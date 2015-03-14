@@ -1,6 +1,6 @@
 #!/bin/python2
 
-import mechanize
+#import mechanize
 import cookielib
 import re
 import urllib2
@@ -11,7 +11,7 @@ import falcon
 import json
 from wsgiref import simple_server
 
-
+"""
 def web_login():
     br = mechanize.Browser()
     cj = cookielib.LWPCookieJar()
@@ -44,7 +44,7 @@ def web_login():
     br.form['fwrd'] = ["free"]
     br.form['username'] = username+key+password+key+str(12)
     br.submit()
-
+"""
 
 class ITS:
     def __init__(self):
