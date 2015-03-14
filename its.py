@@ -10,7 +10,9 @@ import math
 import threading
 import falcon
 import json
+import systemd.journal
 from wsgiref import simple_server
+
 
 """
 def web_login():
@@ -96,11 +98,11 @@ class ITS:
             self.last_request_response = resp.read()
         except Exception as e:
             self.last_request_result = False
-            print(time.strftime('%Y-%m-%d  %H:%M:%S',time.localtime(self.last_check_time)) +
+            systemd.journal.send(time.strftime('%Y-%m-%d  %H:%M:%S',time.localtime(self.last_check_time)) +
                   " Reconnect Request Sent Error.")
             return False
         self.last_request_result = True
-        print(time.strftime('%Y-%m-%d  %H:%M:%S',time.localtime(self.last_check_time)) +
+        systemd.journal.send(time.strftime('%Y-%m-%d  %H:%M:%S',time.localtime(self.last_check_time)) +
                   " Reconnect Request Sent Without Error.")
         return True
 
@@ -118,7 +120,7 @@ class ITS:
             self.last_check_result = True
             break
         if not self.last_check_result:
-            print(time.strftime('%Y-%m-%d  %H:%M:%S',time.localtime(self.last_check_time)) +
+            systemd.journal.send(time.strftime('%Y-%m-%d  %H:%M:%S',time.localtime(self.last_check_time)) +
                   " Detect Connection Lost. Try to reconnect.")
             return False
         return True
@@ -198,6 +200,6 @@ thread1 = MyThread(its)
 if __name__ == '__main__':
     thread1.daemon = True
     thread1.start()
-    httpd = simple_server.make_server('127.0.0.1', 8000, app)
+    httpd = simple_server.make_server('0.0.0.0', 8000, app)
     httpd.serve_forever()
 
