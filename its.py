@@ -200,6 +200,6 @@ thread1 = MyThread(its)
 if __name__ == '__main__':
     thread1.daemon = True
     thread1.start()
-    httpd = simple_server.make_server('0.0.0.0', 8000, app)
+    httpd = simple_server.make_server('127.0.0.1', 8000, app)
     httpd.serve_forever()
 
