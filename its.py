@@ -119,7 +119,7 @@ class ITS:
                 continue
             last_check_result = True
             break
-        self.last_check_time = last_check_result
+        self.last_check_result = last_check_result
         if not self.last_check_result:
             systemd.journal.send(time.strftime('%Y-%m-%d  %H:%M:%S',time.localtime(self.last_check_time)) +
                   " Detect Connection Lost. Try to reconnect.")
