@@ -108,7 +108,7 @@ class ITS:
 
     def check(self):
         self.last_check_time = time.time()
-        self.last_check_result = False
+        last_check_result = False
         for url in self.check_url:
             try:
                 resp = urllib2.urlopen(
@@ -117,8 +117,9 @@ class ITS:
                 )
             except Exception as e:
                 continue
-            self.last_check_result = True
+            last_check_result = True
             break
+        self.last_check_time = last_check_result
         if not self.last_check_result:
             systemd.journal.send(time.strftime('%Y-%m-%d  %H:%M:%S',time.localtime(self.last_check_time)) +
                   " Detect Connection Lost. Try to reconnect.")
