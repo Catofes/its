@@ -1,5 +1,6 @@
 function setInfo(data)
 {
+	document.ajaxdata = data;
     $("#loading_dialog").modal('hide');
     if(data.check_status === true){
         $('#status_tr').attr("class","success");
@@ -35,6 +36,11 @@ function getinfo() {
 
 function connect() {
     $("#loading_dialog").modal('show');
+	document.ajaxcount ++;
+	if(document.ajaxcount < 5 && document.ajaxdata.check_status === true){
+		getinfo();
+		return;
+	}
     $.ajax({
         url: "/connect",
         method: 'POST',
@@ -56,4 +62,5 @@ $('#status_tr').click(
         }
     }
 )
-$(document).ready(getinfo())
+document.ajaxcount = 0;
+$(document).ready(getinfo());

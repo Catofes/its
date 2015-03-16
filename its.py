@@ -58,7 +58,7 @@ class ITS:
         self.last_request_result = True
         self.lost_count = 0
         self.lost_limit = 1
-        self.check_url = ['http://plumz.me/',
+        self.check_url = ['http://plumz.me/generate_204',
                           'http://ipv4.i.catofes.com/']
         self.lock = threading.Lock()
 
