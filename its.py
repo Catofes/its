@@ -249,7 +249,7 @@ class WebService:
         return True
 
     def on_post(self, req, resp):
-        if self.its.connect('connect'):
+        if self.its.connect():
             resp.status = falcon.HTTP_200
         else:
             resp.status = falcon.HTTP_400
