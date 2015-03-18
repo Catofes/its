@@ -118,6 +118,7 @@ class ITS:
         self.last_request_time = time.time()
         if not account:
             account = self.account_manager.get_account()
+        account.last_connect_time = time.time()
         try:
             resp = urllib2.urlopen(
                 "https://its.pku.edu.cn:5428/ipgatewayofpku",
