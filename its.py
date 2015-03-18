@@ -63,14 +63,14 @@ class ITS:
                 self.type = type  # 0 for unlimited account. Should connect first. 1 for normal account. 2 for disable
 
         def __init__(self):
-            self.date = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+            self.date = time.strftime('%Y-%m-%d', time.localtime(time.time() - 3600))
             self.accounts = [
                 self.AccountInfo('gwxpwjz', 'lijiao214', 0),
                 self.AccountInfo('1100011354', 'Sqrt21414', 1)
             ]
 
         def get_account(self):
-            date = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+            date = time.strftime('%Y-%m-%d', time.localtime(time.time() - 3600))
             if date != self.date:
                 for account in self.accounts:
                     account.connect_limit_reach = False
