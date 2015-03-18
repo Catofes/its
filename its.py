@@ -115,6 +115,7 @@ class ITS:
 
     @c_lock
     def connect(self, account):
+        self.last_request_time = time.time()
         if not account:
             account = self.account_manager.get_account()
         try:
