@@ -264,7 +264,13 @@ class WebService:
         })
         return True
 
-    def on_options(self, req, resp):
+    def on_delete(self, req, resp):
+        if 'key' not in req.params.keys():
+            resp.status = falcon.HTTP_400
+            return
+        if req.params['key'] != '301415':
+            resp.status = falcon.HTTP_400
+            return
         resp.status = falcon.HTTP_200
         resp.body = json.dumps([self.its.lost_count, self.its.lost_limit,
                                 list(name.__dict__ for name in self.its.account_manager.accounts)])
