@@ -198,6 +198,7 @@ class ITS:
     def check_fail(self):
         self.lost_count += 1
         if self.lost_count >= self.lost_limit:
+            self.lost_count = 0
             if self.lost_limit >= 64:
                 self.lost_limit = math.floor(256 * math.sqrt(self.lost_count / 256.0))
             else:
