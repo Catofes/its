@@ -24,11 +24,11 @@ function setInfo(data)
         $('#output').removeClass("hidden");
         $('#client_ip').html(data.IP);
         $('#client_output').html(data.destination);
-        $('#change_btn').attr("class","btn btn-danger btn-lg center-block disabled");
+        $('button#change_btn').attr("class","btn btn-success btn-lg center-block");
     }else {
         $('#ip').addClass("hidden");
         $('#output').addClass("hidden");
-        $('#change_btn').attr("class","btn btn-danger btn-lg center-block disabled");
+        $('button#change_btn').attr("class","btn btn-danger btn-lg center-block disabled");
     }
 }
 
@@ -71,11 +71,11 @@ function change(dest) {
         timeout: 10000
     }).done(function (){
         $('#status_tr').attr("class","success");
-        $('#change_btn').attr("class","btn btn-success btn-lg center-block");
+        $('button#change_btn').attr("class","btn btn-success btn-lg center-block");
         $('#status').text("成功")
     }).fail(function(){
         $('#status_tr').attr("class","danger");
-        $('#change_btn').attr("class","btn btn-danger btn-lg center-block");
+        $('button#change_btn').attr("class","btn btn-danger btn-lg center-block");
         $('#status').text("失败")
     })
 }

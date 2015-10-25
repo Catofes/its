@@ -214,11 +214,7 @@ class ChangeNet:
             return False
         p = subprocess.Popen(['ip', 'rule', 'del', 'from', ip])
         p.wait()
-        p.terminate()
-        p.wait()
         p = subprocess.Popen(['ip', 'rule', 'add', 'from', ip, 'lookup', destination])
-        p.wait()
-        p.terminate()
         p.wait()
         return True
 
@@ -229,11 +225,9 @@ class WebService:
 
     def on_get(self, req, resp):
         resp.status = falcon.HTTP_200
-        p = subprocess.Popen(['ip', 'rule', 'list', '|', 'grep', req.get_header("X-Real-IP")],
+        p = subprocess.Popen('ip rule | grep' + str(req.get_header("X-Real-IP")), shell=True,
                              stdout=subprocess.PIPE)
         destination = p.stdout.readline()
-        p.wait()
-        p.terminate()
         p.wait()
         resp.body = json.dumps({
             'IP': req.get_header("X-Real-IP"),
@@ -253,11 +247,9 @@ class WebService:
             resp.status = falcon.HTTP_200
         else:
             resp.status = falcon.HTTP_400
-        p = subprocess.Popen(['ip', 'rule', 'list', '|', 'grep', req.get_header("X-Real-IP")],
+        p = subprocess.Popen('ip rule | grep' + str(req.get_header("X-Real-IP")), shell=True,
                              stdout=subprocess.PIPE)
         destination = p.stdout.readline()
-        p.wait()
-        p.terminate()
         p.wait()
         resp.body = json.dumps({
             'IP': req.get_header("X-Real-IP"),
@@ -280,13 +272,8 @@ class WebService:
             return falcon.HTTP_400
         if not ChangeNet.update(ip, req.get_param("dest")):
             return falcon.HTTP_400
-        p = subprocess.Popen(['ip', 'rule', 'list', '|', 'grep', req.get_header("X-Real-IP")],
-                             stdout=subprocess.PIPE)
-        destination = p.stdout.readline()
-        p.wait()
-        p.terminate()
-        p.wait()
-
+        return falcon.HTTP_200
+    
     def on_delete(self, req, resp):
         if 'key' not in req.params.keys():
             resp.status = falcon.HTTP_400
