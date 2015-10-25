@@ -10,42 +10,8 @@ import threading
 import falcon
 import json
 import systemd.journal
-import cPickle
+import subprocess
 from wsgiref import simple_server
-
-
-"""
-def web_login():
-    br = mechanize.Browser()
-    cj = cookielib.LWPCookieJar()
-    br.set_cookiejar(cj)
-
-    #br.set_handle_gzip(True)
-    br.set_handle_redirect(True)
-    br.set_handle_referer(True)
-    br.set_handle_robots(False)
-
-    br.set_debug_http(True)
-    br.addheaders = [('User-agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.1.11) Gecko/20100701 Firefox/3.5.11')]
-    response = br.open('http://its.pku.edu.cn/')
-    for f in br.forms():
-        print f
-
-    data = response.read()
-    m = re.search(r'unescape\(\"[0-9A-Za-z%]*\"\)', data, re.M)
-    if m is None:
-        return False
-    key = urllib2.unquote(m.group()[10:-2])
-    print key
-
-    br.select_form('lif')
-    br.form.set_all_readonly(False)
-    br.form['username1'] = username
-    br.form['password'] = password
-    br.form['fwrd'] = ["free"]
-    br.form['username'] = username+key+password+key+str(12)
-    br.submit()
-"""
 
 
 class ITS:
@@ -63,8 +29,7 @@ class ITS:
         def __init__(self):
             self.date = time.strftime('%Y-%m-%d', time.localtime(time.time() - 3600))
             self.accounts = [
-                self.AccountInfo('aaa', 'bbb', 0),
-                self.AccountInfo('ccc', 'ddd', 1)
+                self.AccountInfo('aaa', 'aaa', 0)
             ]
 
         def get_account(self):
@@ -180,7 +145,7 @@ class ITS:
             try:
                 resp = urllib2.urlopen(
                     url,
-                    timeout=3
+                    timeout=5
                 )
             except Exception as e:
                 continue
@@ -232,13 +197,47 @@ class MyThread(threading.Thread):
         its.loop()
 
 
+class ChangeNet:
+    @staticmethod
+    def update(ip, destination):
+        destinations = [
+            'main',
+            'japan',
+        ]
+        if not ip:
+            return False
+        if ip == "10.16.0.1":
+            return False
+        if not re.match("^10.16.*", ip):
+            return False
+        if destination not in destinations:
+            return False
+        p = subprocess.Popen(['ip', 'rule', 'del', 'from', ip])
+        p.wait()
+        p.terminate()
+        p.wait()
+        p = subprocess.Popen(['ip', 'rule', 'add', 'from', ip, 'lookup', destination])
+        p.wait()
+        p.terminate()
+        p.wait()
+        return True
+
+
 class WebService:
     def __init__(self, its):
         self.its = its
 
     def on_get(self, req, resp):
         resp.status = falcon.HTTP_200
+        p = subprocess.Popen(['ip', 'rule', 'list', '|', 'grep', req.get_header("X-Real-IP")],
+                             stdout=subprocess.PIPE)
+        destination = p.stdout.readline()
+        p.wait()
+        p.terminate()
+        p.wait()
         resp.body = json.dumps({
+            'IP': req.get_header("X-Real-IP"),
+            'destination': destination,
             'check_status': self.its.last_check_result,
             'check_time': time.strftime('%Y-%m-%d  %H:%M:%S', time.localtime(self.its.last_check_time)),
             'request_time': time.strftime('%Y-%m-%d  %H:%M:%S', time.localtime(self.its.last_request_time)),
@@ -254,7 +253,15 @@ class WebService:
             resp.status = falcon.HTTP_200
         else:
             resp.status = falcon.HTTP_400
+        p = subprocess.Popen(['ip', 'rule', 'list', '|', 'grep', req.get_header("X-Real-IP")],
+                             stdout=subprocess.PIPE)
+        destination = p.stdout.readline()
+        p.wait()
+        p.terminate()
+        p.wait()
         resp.body = json.dumps({
+            'IP': req.get_header("X-Real-IP"),
+            'destination': destination,
             'check_status': self.its.last_check_result,
             'check_time': time.strftime('%Y-%m-%d  %H:%M:%S', time.localtime(self.its.last_check_time)),
             'request_time': time.strftime('%Y-%m-%d  %H:%M:%S', time.localtime(self.its.last_request_time)),
@@ -264,6 +271,21 @@ class WebService:
                                                                 + time.time()))
         })
         return True
+
+    def on_put(self, req, resp):
+        ip = req.get_header("X-Real-IP")
+        if not ip:
+            return falcon.HTTP_400
+        if not req.get_param("dest"):
+            return falcon.HTTP_400
+        if not ChangeNet.update(ip, req.get_param("dest")):
+            return falcon.HTTP_400
+        p = subprocess.Popen(['ip', 'rule', 'list', '|', 'grep', req.get_header("X-Real-IP")],
+                             stdout=subprocess.PIPE)
+        destination = p.stdout.readline()
+        p.wait()
+        p.terminate()
+        p.wait()
 
     def on_delete(self, req, resp):
         if 'key' not in req.params.keys():
@@ -276,6 +298,7 @@ class WebService:
         resp.body = json.dumps([self.its.lost_count, self.its.lost_limit,
                                 list(name.__dict__ for name in self.its.account_manager.accounts)])
 
+
 its = ITS()
 app = falcon.API()
 app.add_route('/connect', WebService(its))
@@ -286,4 +309,3 @@ if __name__ == '__main__':
     thread1.start()
     httpd = simple_server.make_server('127.0.0.1', 8000, app)
     httpd.serve_forever()
-
