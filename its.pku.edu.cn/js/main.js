@@ -78,9 +78,7 @@ function change() {
         timeout: 10000
     }).done(function () {
         $("#loading_dialog").modal('hide');
-        $('#status_tr').attr("class", "success");
-        $('button#change_btn').attr("class", "btn btn-success btn-lg center-block");
-        $('#status').text("成功")
+        getinfo()
     }).fail(function () {
         $("#loading_dialog").modal('hide');
         $('#status_tr').attr("class", "danger");

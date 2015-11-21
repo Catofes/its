@@ -211,7 +211,7 @@ class Destination:
     def create(self):
         if not self.route_table:
             return False
-        p = subprocess.Popen(['ip', 'route', 'flush', self.route_table])
+        p = subprocess.Popen(['ip', 'route', 'flush', 'table', self.route_table])
         p.wait()
         for line in self.route_rule:
             line.append('table')
@@ -241,7 +241,8 @@ class ChangeNet:
             return False
         if ip == "10.20.0.1":
             return False
-        if not destinations[destination_id]:
+        destination_id = int(destination_id)
+        if destination_id not in destinations:
             return False
         destination = destinations[destination_id]
         if not destination.test_ip(ip):
@@ -261,7 +262,7 @@ class WebService:
                                       name="PKU",
                                       route_table="rpku",
                                       route_rule=[
-                                          ['ip', 'route', 'add', 'default', 'dev', 'enp1s0'],
+                                          ['ip', 'route', 'add', 'default', 'via', '222.29.47.1', 'dev', 'enp1s0'],
                                       ],
                                       allow_ips=[
                                           "10.20.3.*",
@@ -280,14 +281,14 @@ class WebService:
                                       name="Linode Japan IPV6",
                                       route_table="rl6japan",
                                       route_rule=[
-                                          ['ip', 'route', 'add', 'default', 'dev', 'grej6']
+                                          ['ip', 'route', 'add', 'default', 'dev', 'gre6j']
                                       ],
                                       allow_ips=[
                                           "10.*"
                                       ])
         destinations[4] = Destination(id=4,
                                       name="Softlayer HK",
-                                      route_table="rlslhk",
+                                      route_table="rslhk",
                                       route_rule=[
                                           ['ip', 'route', 'add', 'default', 'dev', 'greslhk']
                                       ],
@@ -296,7 +297,7 @@ class WebService:
                                       ])
         destinations[5] = Destination(id=5,
                                       name="Softlayer HK IPV6",
-                                      route_table="rljapan",
+                                      route_table="rsl6hk",
                                       route_rule=[
                                           ['ip', 'route', 'add', 'default', 'dev', 'phoslhk6']
                                       ],
@@ -305,13 +306,15 @@ class WebService:
                                       ])
         destinations[6] = Destination(id=6,
                                       name="MultaCom LosAngeles IPV6",
-                                      route_table="rljapan",
+                                      route_table="rmc6",
                                       route_rule=[
                                           ['ip', 'route', 'add', 'default', 'dev', 'gremc6']
                                       ],
                                       allow_ips=[
                                           "10.*"
                                       ])
+        for destination in destinations.itervalues():
+            destination.create()
 
     def on_get(self, req, resp):
         resp.status = falcon.HTTP_200
