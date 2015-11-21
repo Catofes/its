@@ -200,7 +200,7 @@ class MyThread(threading.Thread):
 
 
 class Destination:
-    def __init__(self, id, name, route_table, route_rule=[], allow_ips=[], disallow_ips=[]):
+    def __init__(self, id, name, route_table, route_rule, allow_ips, disallow_ips=None):
         self.id = id
         self.name = name
         self.route_table = route_table
@@ -220,9 +220,10 @@ class Destination:
             p.wait()
 
     def test_ip(self, ip):
-        for disallow_ip in self.disallow_ips:
-            if re.match(disallow_ip, ip):
-                return False
+        if self.disallow_ips:
+            for disallow_ip in self.disallow_ips:
+                if re.match(disallow_ip, ip):
+                    return False
         for allow_ip in self.allow_ips:
             if re.match(allow_ip, ip):
                 return True
@@ -264,7 +265,7 @@ class WebService:
                                       ],
                                       allow_ips=[
                                           "10.20.3.*",
-                                          "10.20.1.*",
+                                          "10.20.1.*"
                                       ])
         destinations[2] = Destination(id=2,
                                       name="Linode Japan",
@@ -273,7 +274,7 @@ class WebService:
                                           ['ip', 'route', 'add', 'default', 'dev', 'grej']
                                       ],
                                       allow_ips=[
-                                          "10.*",
+                                          "10.*"
                                       ])
         destinations[3] = Destination(id=3,
                                       name="Linode Japan IPV6",
@@ -282,7 +283,7 @@ class WebService:
                                           ['ip', 'route', 'add', 'default', 'dev', 'grej6']
                                       ],
                                       allow_ips=[
-                                          "10.*",
+                                          "10.*"
                                       ])
         destinations[4] = Destination(id=4,
                                       name="Softlayer HK",
@@ -291,7 +292,7 @@ class WebService:
                                           ['ip', 'route', 'add', 'default', 'dev', 'greslhk']
                                       ],
                                       allow_ips=[
-                                          "10.20.1.*",
+                                          "10.20.1.*"
                                       ])
         destinations[5] = Destination(id=5,
                                       name="Softlayer HK IPV6",
@@ -300,7 +301,7 @@ class WebService:
                                           ['ip', 'route', 'add', 'default', 'dev', 'phoslhk6']
                                       ],
                                       allow_ips=[
-                                          "10.*",
+                                          "10.*"
                                       ])
         destinations[6] = Destination(id=6,
                                       name="MultaCom LosAngeles IPV6",
@@ -309,7 +310,7 @@ class WebService:
                                           ['ip', 'route', 'add', 'default', 'dev', 'gremc6']
                                       ],
                                       allow_ips=[
-                                          "10.*",
+                                          "10.*"
                                       ])
 
     def on_get(self, req, resp):
