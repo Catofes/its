@@ -18,8 +18,9 @@ function setInfo(data) {
     $('#connect_time').text(data.request_time);
     $('#plan_time').text(data.next_reconnect_time);
     $('#status_detail').html(data.request_response);
-    for (var i in allow_destination) {
-        $('<option value="' + allow_destination[i].id + '">' + allow_destination[i].name + '</option>').appendTo('select#output_selector')
+    for (var i in data.allow_destination) {
+        $('<option value="' + data.allow_destination[i].id + '">'
+            + data.allow_destination[i].name + '</option>').appendTo('select#output_selector')
     }
     if (data.IP != null) {
         $('tr.ip').removeClass("hidden");
@@ -68,7 +69,8 @@ function connect() {
     });
 }
 
-function change(dest) {
+function change() {
+    dest = $("select#output_selector")[0].value;
     $("#loading_dialog").modal('show');
     $.ajax({
         url: "/connect?dest=" + dest,
@@ -90,13 +92,13 @@ function change(dest) {
 $('#status_tr').click(
     function () {
         if (document.status_open == true) {
-            document.status_open = false
+            document.status_open = false;
             $('#status_dialog').modal('hide')
         } else {
-            document.status_open = true
+            document.status_open = true;
             $('#status_dialog').modal('show')
         }
     }
-)
+);
 document.ajaxcount = 0;
 $(document).ready(getinfo());

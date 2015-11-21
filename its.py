@@ -187,7 +187,7 @@ class ITS:
                 self.check_success()
             else:
                 self.check_fail()
-            time.sleep(10)
+            time.sleep(5)
 
 
 class MyThread(threading.Thread):
