@@ -100,7 +100,7 @@ class ITS:
         except Exception as e:
             self.last_request_result = False
             systemd.journal.send(time.strftime('%Y-%m-%d  %H:%M:%S  ', time.localtime(self.last_check_time)) +
-                                 account.name + "   Connect Request Sent Error.")
+                                 account.name + "   Connect Request Sent Error." + e.message)
             return False
         self.last_request_response = resp.read().decode('GB2312')
         if re.search(ur'今天不能再使用客户端', self.last_request_response, re.UNICODE):
@@ -134,7 +134,7 @@ class ITS:
             )
         except Exception as e:
             systemd.journal.send(time.strftime('%Y-%m-%d  %H:%M:%S  ', time.localtime(self.last_check_time)) +
-                                 account.name + "   Disconnectall Request Sent Error.")
+                                 account.name + "   Disconnectall Request Sent Error." + e.message)
             return False
         systemd.journal.send(time.strftime('%Y-%m-%d  %H:%M:%S  ', time.localtime(self.last_check_time)) +
                              account.name + "   Disconnectall Request Sent Without Error.")
