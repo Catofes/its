@@ -200,7 +200,7 @@ class MyThread(threading.Thread):
 
 
 class Destination:
-    def __init__(self, id, name, route_table, route_rule, allow_ips, disallow_ips):
+    def __init__(self, id, name, route_table, route_rule=[], allow_ips=[], disallow_ips=[]):
         self.id = id
         self.name = name
         self.route_table = route_table
@@ -453,6 +453,7 @@ class WebAdminService:
 its = ITS()
 app = falcon.API()
 app.add_route('/connect', WebService(its))
+app.add_route('/admin', WebAdminService())
 thread1 = MyThread(its)
 
 if __name__ == '__main__':
