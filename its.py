@@ -230,7 +230,7 @@ class Destination:
         return False
 
 
-destinations = []
+destinations = {}
 
 
 class ChangeNet:
@@ -261,7 +261,7 @@ class WebService:
                                       name="PKU",
                                       route_table="rpku",
                                       route_rule=[
-                                          ['ip', 'route', 'add', 'default', 'dev', 'enp1s0']
+                                          ['ip', 'route', 'add', 'default', 'dev', 'enp1s0'],
                                       ],
                                       allow_ips=[
                                           "10.20.3.*",
@@ -324,14 +324,14 @@ class WebService:
         p.wait()
         allow_destination = []
         global destinations
-        for destination in destinations:
+        for destination in destinations.itervalues():
             if destination.test_ip(ip):
                 allow_destination.append({
                     'id': destination.id,
                     'name': destination.name
                 })
         destination = ""
-        for d in destinations:
+        for d in destinations.itervalues():
             if destination_table == d.route_table:
                 destination = d.name
                 break
@@ -363,14 +363,14 @@ class WebService:
         p.wait()
         allow_destination = []
         global destinations
-        for destination in destinations:
+        for destination in destinations.itervalues():
             if destination.test_ip(ip):
                 allow_destination.append({
                     'id': destination.id,
                     'name': destination.name
                 })
         destination = ""
-        for d in destinations:
+        for d in destinations.itervalues():
             if destination_table == d.route_table:
                 destination = d.name
                 break
