@@ -18,6 +18,7 @@ function setInfo(data) {
     $('#connect_time').text(data.request_time);
     $('#plan_time').text(data.next_reconnect_time);
     $('#status_detail').html(data.request_response);
+    $('select#output_selector').empty();
     for (var i in data.allow_destination) {
         $('<option value="' + data.allow_destination[i].id + '">'
             + data.allow_destination[i].name + '</option>').appendTo('select#output_selector')
