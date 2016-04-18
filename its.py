@@ -86,16 +86,16 @@ class ITS:
         account.last_connect_time = time.time()
         try:
             resp = urllib2.urlopen(
-                "https://its.pku.edu.cn:5428/ipgatewayofpku",
-                urllib.urlencode(
-                    {
-                        "uid": account.name,
-                        "password": account.password,
-                        "range": '1',
-                        "operation": 'connect',
-                        "timeout": "1"
-                    }
-                ), timeout=5
+                    "https://its.pku.edu.cn:5428/ipgatewayofpku",
+                    urllib.urlencode(
+                            {
+                                "uid": account.name,
+                                "password": account.password,
+                                "range": '1',
+                                "operation": 'connect',
+                                "timeout": "1"
+                            }
+                    ), timeout=5
             )
         except Exception as e:
             self.last_request_result = False
@@ -121,16 +121,16 @@ class ITS:
     def disconnect(self, account):
         try:
             resp = urllib2.urlopen(
-                "https://its.pku.edu.cn:5428/ipgatewayofpku",
-                urllib.urlencode(
-                    {
-                        "uid": account.name,
-                        "password": account.password,
-                        "range": '4',
-                        "operation": 'disconnectall',
-                        "timeout": "1"
-                    }
-                ), timeout=5
+                    "https://its.pku.edu.cn:5428/ipgatewayofpku",
+                    urllib.urlencode(
+                            {
+                                "uid": account.name,
+                                "password": account.password,
+                                "range": '4',
+                                "operation": 'disconnectall',
+                                "timeout": "1"
+                            }
+                    ), timeout=5
             )
         except Exception as e:
             systemd.journal.send(time.strftime('%Y-%m-%d  %H:%M:%S  ', time.localtime(self.last_check_time)) +
@@ -146,8 +146,8 @@ class ITS:
         for url in self.check_url:
             try:
                 resp = urllib2.urlopen(
-                    url,
-                    timeout=5
+                        url,
+                        timeout=5
                 )
             except Exception as e:
                 continue
@@ -267,6 +267,9 @@ class WebService:
                                       allow_ips=[
                                           "10.20.3.*",
                                           "10.20.1.*"
+                                      ],
+                                      disallow_ips=[
+                                          "10.\d{1,3}.0.1",
                                       ])
         destinations[2] = Destination(id=2,
                                       name="Linode Japan",
@@ -276,6 +279,9 @@ class WebService:
                                       ],
                                       allow_ips=[
                                           "10.*"
+                                      ],
+                                      disallow_ips=[
+                                          "10.\d{1,3}.0.1",
                                       ])
         destinations[3] = Destination(id=3,
                                       name="Linode Japan IPV6",
@@ -285,6 +291,9 @@ class WebService:
                                       ],
                                       allow_ips=[
                                           "10.*"
+                                      ],
+                                      disallow_ips=[
+                                          "10.\d{1,3}.0.1",
                                       ])
         destinations[4] = Destination(id=4,
                                       name="Softlayer HK",
@@ -294,7 +303,11 @@ class WebService:
                                       ],
                                       allow_ips=[
                                           "10.20.1.*"
-                                      ])
+                                      ],
+                                      disallow_ips=[
+                                          "10.\d{1,3}.0.1",
+                                      ]
+                                      )
         destinations[5] = Destination(id=5,
                                       name="Softlayer HK IPV6",
                                       route_table="rsl6hk",
@@ -303,6 +316,9 @@ class WebService:
                                       ],
                                       allow_ips=[
                                           "10.*"
+                                      ],
+                                      disallow_ips=[
+                                          "10.\d{1,3}.0.1",
                                       ])
         destinations[6] = Destination(id=6,
                                       name="MultaCom LosAngeles IPV6",
@@ -312,7 +328,59 @@ class WebService:
                                       ],
                                       allow_ips=[
                                           "10.*"
+                                      ],
+                                      disallow_ips=[
+                                          "10.\d{1,3}.0.1",
                                       ])
+        destinations[7] = Destination(id=7,
+                                      name="Digital Ocean",
+                                      route_table="rdony",
+                                      route_rule=[
+                                          ['ip', 'route', 'add', 'default', 'dev', 'grel']
+                                      ],
+                                      allow_ips=[
+                                          "10.*"
+                                      ],
+                                      disallow_ips=[
+                                          "10.\d{1,3}.0.1",
+                                      ])
+        destinations[8] = Destination(id=8,
+                                      name="Digital Ocean IPV6",
+                                      route_table="rdo6ny",
+                                      route_rule=[
+                                          ['ip', 'route', 'add', 'default', 'dev', 'gre6l']
+                                      ],
+                                      allow_ips=[
+                                          "10.*"
+                                      ],
+                                      disallow_ips=[
+                                          "10.\d{1,3}.0.1",
+                                      ])
+        destinations[9] = Destination(id=9,
+                                      name="Aliyun",
+                                      route_table="rcnal",
+                                      route_rule=[
+                                          ['ip', 'route', 'add', 'default', 'dev', 'grealiyun']
+                                      ],
+                                      allow_ips=[
+                                          "10.20.1.*",
+                                          "10.20.3.*"
+                                      ],
+                                      disallow_ips=[
+                                          "10.\d{1,3}.0.1",
+                                      ])
+        destinations[10] = Destination(id=10,
+                                       name="Online France",
+                                       route_table="ronfr",
+                                       route_rule=[
+                                           ['ip', 'route', 'add', 'default', 'dev', 'gref']
+                                       ],
+                                       allow_ips=[
+                                           "10.*",
+                                       ],
+                                       disallow_ips=[
+                                           "10.\d{1,3}.0.1",
+                                       ])
         for destination in destinations.itervalues():
             destination.create()
 
@@ -420,36 +488,56 @@ class WebAdminService:
     def on_get(self, req, resp):
         sec = req.get_param("sec")
         if not sec:
-            return falcon.HTTP_403
+            resp.status = falcon.HTTP_403
+            return
         if sec != "secretcode":
-            return falcon.HTTP_403
+            resp.status = falcon.HTTP_403
+            return
+        ip = req.get_param("ip")
+        if not ip:
+            resp.status = falcon.HTTP_400
+            return
         global destinations
-        resp.body = json.dumps(destinations)
+        allow_destination = []
+        for destination in destinations.itervalues():
+            if destination.test_ip(ip):
+                allow_destination.append({
+                    'id': destination.id,
+                    'name': destination.name
+                })
+        resp.body = json.dumps(allow_destination)
 
     def on_put(self, req, resp):
         sec = req.get_param("sec")
         if not sec:
-            return falcon.HTTP_403
+            resp.status = falcon.HTTP_403
+            return
         if sec != "secretcode":
-            return falcon.HTTP_403
+            resp.status = falcon.HTTP_403
+            return
         ip = req.get_param("ip")
         if not ip:
-            return falcon.HTTP_400
+            resp.status = falcon.HTTP_400
+            return
         if not req.get_param("dest"):
-            return falcon.HTTP_400
+            resp.status = falcon.HTTP_400
+            return
         if not ChangeNet.update(ip, req.get_param("dest")):
-            return falcon.HTTP_400
-        return falcon.HTTP_200
+            resp.status = falcon.HTTP_400
+            return
 
     def on_delete(self, req, resp):
         sec = req.get_param("sec")
         if not sec:
-            return falcon.HTTP_403
+            resp.status = falcon.HTTP_403
+            return
         if sec != "secretcode":
-            return falcon.HTTP_403
+            resp.status = falcon.HTTP_403
+            return
         ip = req.get_param("ip")
         if not ip:
-            return falcon.HTTP_400
+            resp.status = falcon.HTTP_400
+            return
         p = subprocess.Popen(['ip', 'rule', 'del', 'from', ip])
         p.wait()
 
