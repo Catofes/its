@@ -230,7 +230,7 @@ class Destination:
         for allow_ip in self.allow_ips:
             if re.match(allow_ip, ip):
                 return True
-        if not name:
+        if name:
             if self.db.execute(
                     "SELECT DISTINCT outer_id FROM groupouter JOIN usergroup USING (groupname) "
                     "WHERE username = %s AND groupouter.outer_id = %s ORDER BY outer_id;", (name, self.id)):
@@ -292,7 +292,10 @@ class WebService:
         result = self.db.execute(
             "SELECT DISTINCT outer_id FROM groupouter JOIN usergroup USING (groupname) WHERE username = %s ORDER BY outer_id;",
             (name,))
-        return result
+        if result:
+            return result
+        else:
+            return []
 
     def _get_info(self, req, resp):
         ip = str(req.get_header("X-Real-IP"))
