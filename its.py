@@ -292,6 +292,7 @@ class WebService:
         result = self.db.execute(
             "SELECT DISTINCT outer_id FROM groupouter JOIN usergroup USING (groupname) WHERE username = %s ORDER BY outer_id;",
             (name,))
+        print(result)
         return list(result)
 
     def _get_info(self, req, resp):
@@ -304,7 +305,6 @@ class WebService:
 
         allow_destination = []
         name = self._get_username(ip)
-        print(name)
         dest = []
         if name:
             dest = self._get_allow_dest(name)
