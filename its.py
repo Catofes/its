@@ -292,8 +292,7 @@ class WebService:
         result = self.db.execute(
             "SELECT DISTINCT outer_id FROM groupouter JOIN usergroup USING (groupname) WHERE username = %s ORDER BY outer_id;",
             (name,))
-        print(result)
-        return list(result)
+        return result
 
     def _get_info(self, req, resp):
         ip = str(req.get_header("X-Real-IP"))
@@ -311,7 +310,7 @@ class WebService:
 
         global destinations
         for destination in destinations.itervalues():
-            if destination.test_ip(ip) or (destination.id in dest):
+            if destination.test_ip(ip) or ([destination.id] in dest):
                 allow_destination.append({
                     'id': destination.id,
                     'name': destination.name
