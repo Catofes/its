@@ -11,7 +11,11 @@ import falcon
 import json
 import systemd.journal
 import subprocess
+import psycopg2
 from wsgiref import simple_server
+
+import config
+import database
 
 
 class ITS:
@@ -29,9 +33,9 @@ class ITS:
 
         def __init__(self):
             self.date = time.strftime('%Y-%m-%d', time.localtime(time.time() - 3600))
-            self.accounts = [
-                self.AccountInfo('aaa', 'aaa', 0)
-            ]
+            self.accounts = []
+            for account in config.accounts:
+                self.accounts.append(self.AccountInfo(account[0], account[1], account[2]))
 
         def get_account(self):
             date = time.strftime('%Y-%m-%d', time.localtime(time.time() - 3600))
@@ -61,9 +65,7 @@ class ITS:
         self.last_request_result = True
         self.lost_count = 0
         self.lost_limit = 1
-        self.check_url = ['http://10.29.0.1:3128/',
-                          'http://plumz.me/generate_204',
-                          'http://ipv4.i.catofes.com/']
+        self.check_url = config.check_url
         self.account_manager = self.AccountManager()
         self.lock = threading.Lock()
 
@@ -86,16 +88,16 @@ class ITS:
         account.last_connect_time = time.time()
         try:
             resp = urllib2.urlopen(
-                    "https://its.pku.edu.cn:5428/ipgatewayofpku",
-                    urllib.urlencode(
-                            {
-                                "uid": account.name,
-                                "password": account.password,
-                                "range": '1',
-                                "operation": 'connect',
-                                "timeout": "1"
-                            }
-                    ), timeout=5
+                "https://its.pku.edu.cn:5428/ipgatewayofpku",
+                urllib.urlencode(
+                    {
+                        "uid": account.name,
+                        "password": account.password,
+                        "range": '1',
+                        "operation": 'connect',
+                        "timeout": "1"
+                    }
+                ), timeout=5
             )
         except Exception as e:
             self.last_request_result = False
@@ -121,16 +123,16 @@ class ITS:
     def disconnect(self, account):
         try:
             resp = urllib2.urlopen(
-                    "https://its.pku.edu.cn:5428/ipgatewayofpku",
-                    urllib.urlencode(
-                            {
-                                "uid": account.name,
-                                "password": account.password,
-                                "range": '4',
-                                "operation": 'disconnectall',
-                                "timeout": "1"
-                            }
-                    ), timeout=5
+                "https://its.pku.edu.cn:5428/ipgatewayofpku",
+                urllib.urlencode(
+                    {
+                        "uid": account.name,
+                        "password": account.password,
+                        "range": '4',
+                        "operation": 'disconnectall',
+                        "timeout": "1"
+                    }
+                ), timeout=5
             )
         except Exception as e:
             systemd.journal.send(time.strftime('%Y-%m-%d  %H:%M:%S  ', time.localtime(self.last_check_time)) +
@@ -146,8 +148,8 @@ class ITS:
         for url in self.check_url:
             try:
                 resp = urllib2.urlopen(
-                        url,
-                        timeout=5
+                    url,
+                    timeout=5
                 )
             except Exception as e:
                 continue
@@ -258,131 +260,156 @@ class WebService:
     def __init__(self, its):
         self.its = its
         global destinations
-        destinations[1] = Destination(id=1,
-                                      name="PKU",
-                                      route_table="rpku",
-                                      route_rule=[
-                                          ['ip', 'route', 'add', 'default', 'via', '222.29.47.1', 'dev', 'enp1s0'],
-                                      ],
-                                      allow_ips=[
-                                          "10.20.3.*",
-                                          "10.20.1.*"
-                                      ],
-                                      disallow_ips=[
-                                          "10.\d{1,3}.0.1",
-                                      ])
-        destinations[2] = Destination(id=2,
-                                      name="Linode Japan",
-                                      route_table="rljapan",
-                                      route_rule=[
-                                          ['ip', 'route', 'add', 'default', 'dev', 'grej']
-                                      ],
-                                      allow_ips=[
-                                          "10.*"
-                                      ],
-                                      disallow_ips=[
-                                          "10.\d{1,3}.0.1",
-                                      ])
-        destinations[3] = Destination(id=3,
-                                      name="Linode Japan IPV6",
-                                      route_table="rl6japan",
-                                      route_rule=[
-                                          ['ip', 'route', 'add', 'default', 'dev', 'gre6j']
-                                      ],
-                                      allow_ips=[
-                                          "10.*"
-                                      ],
-                                      disallow_ips=[
-                                          "10.\d{1,3}.0.1",
-                                      ])
-        destinations[4] = Destination(id=4,
-                                      name="Softlayer HK",
-                                      route_table="rslhk",
-                                      route_rule=[
-                                          ['ip', 'route', 'add', 'default', 'dev', 'greslhk']
-                                      ],
-                                      allow_ips=[
-                                          "10.20.1.*"
-                                      ],
-                                      disallow_ips=[
-                                          "10.\d{1,3}.0.1",
-                                      ]
-                                      )
-        destinations[5] = Destination(id=5,
-                                      name="Softlayer HK IPV6",
-                                      route_table="rsl6hk",
-                                      route_rule=[
-                                          ['ip', 'route', 'add', 'default', 'dev', 'phoslhk6']
-                                      ],
-                                      allow_ips=[
-                                          "10.*"
-                                      ],
-                                      disallow_ips=[
-                                          "10.\d{1,3}.0.1",
-                                      ])
-        destinations[6] = Destination(id=6,
-                                      name="MultaCom LosAngeles IPV6",
-                                      route_table="rmc6",
-                                      route_rule=[
-                                          ['ip', 'route', 'add', 'default', 'dev', 'gremc6']
-                                      ],
-                                      allow_ips=[
-                                          "10.*"
-                                      ],
-                                      disallow_ips=[
-                                          "10.\d{1,3}.0.1",
-                                      ])
-        destinations[7] = Destination(id=7,
-                                      name="Digital Ocean",
-                                      route_table="rdony",
-                                      route_rule=[
-                                          ['ip', 'route', 'add', 'default', 'dev', 'grel']
-                                      ],
-                                      allow_ips=[
-                                          "10.*"
-                                      ],
-                                      disallow_ips=[
-                                          "10.\d{1,3}.0.1",
-                                      ])
-        destinations[8] = Destination(id=8,
-                                      name="Digital Ocean IPV6",
-                                      route_table="rdo6ny",
-                                      route_rule=[
-                                          ['ip', 'route', 'add', 'default', 'dev', 'gre6l']
-                                      ],
-                                      allow_ips=[
-                                          "10.*"
-                                      ],
-                                      disallow_ips=[
-                                          "10.\d{1,3}.0.1",
-                                      ])
-        destinations[9] = Destination(id=9,
-                                      name="Aliyun",
-                                      route_table="rcnal",
-                                      route_rule=[
-                                          ['ip', 'route', 'add', 'default', 'dev', 'grealiyun']
-                                      ],
-                                      allow_ips=[
-                                          "10.20.1.*",
-                                          "10.20.3.*"
-                                      ],
-                                      disallow_ips=[
-                                          "10.\d{1,3}.0.1",
-                                      ])
-        destinations[10] = Destination(id=10,
-                                       name="Online France",
-                                       route_table="ronfr",
-                                       route_rule=[
-                                           ['ip', 'route', 'add', 'default', 'dev', 'gref']
-                                       ],
-                                       allow_ips=[
-                                           "10.*",
-                                       ],
-                                       disallow_ips=[
-                                           "10.\d{1,3}.0.1",
-                                       ])
+        self.db = database.RDateBasePool()
+        results = self.db.execute('SELECT * FROM outer;', ())
+        for dest in results:
+            destinations[dest['id']] = Destination(
+                name=dest['name'],
+                id=dest['id'],
+                route_table=dest['route_table'],
+                route_rule=json.loads(dest['route_rule']),
+                allow_ips=json.loads(dest['allow_ips']),
+                disallow_ips=json.loads(dest['disallow_ips'])
+            )
+        # destinations[1] = Destination(id=1,
+        #                               name="PKU",
+        #                               route_table="rpku",
+        #                               route_rule=[
+        #                                   ['ip', 'route', 'add', 'default', 'via', '222.29.47.1', 'dev', 'enp1s0'],
+        #                               ],
+        #                               allow_ips=[
+        #                                   "10.20.3.*",
+        #                                   "10.20.1.*"
+        #                               ],
+        #                               disallow_ips=[
+        #                                   "10.\d{1,3}.0.1",
+        #                               ])
+        # destinations[2] = Destination(id=2,
+        #                               name="Linode Japan",
+        #                               route_table="rljapan",
+        #                               route_rule=[
+        #                                   ['ip', 'route', 'add', 'default', 'dev', 'grej']
+        #                               ],
+        #                               allow_ips=[
+        #                                   "10.*"
+        #                               ],
+        #                               disallow_ips=[
+        #                                   "10.\d{1,3}.0.1",
+        #                               ])
+        # destinations[3] = Destination(id=3,
+        #                               name="Linode Japan IPV6",
+        #                               route_table="rl6japan",
+        #                               route_rule=[
+        #                                   ['ip', 'route', 'add', 'default', 'dev', 'gre6j']
+        #                               ],
+        #                               allow_ips=[
+        #                                   "10.*"
+        #                               ],
+        #                               disallow_ips=[
+        #                                   "10.\d{1,3}.0.1",
+        #                               ])
+        # destinations[4] = Destination(id=4,
+        #                               name="Softlayer HK",
+        #                               route_table="rslhk",
+        #                               route_rule=[
+        #                                   ['ip', 'route', 'add', 'default', 'dev', 'greslhk']
+        #                               ],
+        #                               allow_ips=[
+        #                                   "10.20.1.*"
+        #                               ],
+        #                               disallow_ips=[
+        #                                   "10.\d{1,3}.0.1",
+        #                               ]
+        #                               )
+        # destinations[5] = Destination(id=5,
+        #                               name="Softlayer HK IPV6",
+        #                               route_table="rsl6hk",
+        #                               route_rule=[
+        #                                   ['ip', 'route', 'add', 'default', 'dev', 'phoslhk6']
+        #                               ],
+        #                               allow_ips=[
+        #                                   "10.*"
+        #                               ],
+        #                               disallow_ips=[
+        #                                   "10.\d{1,3}.0.1",
+        #                               ])
+        # destinations[6] = Destination(id=6,
+        #                               name="MultaCom LosAngeles IPV6",
+        #                               route_table="rmc6",
+        #                               route_rule=[
+        #                                   ['ip', 'route', 'add', 'default', 'dev', 'gremc6']
+        #                               ],
+        #                               allow_ips=[
+        #                                   "10.*"
+        #                               ],
+        #                               disallow_ips=[
+        #                                   "10.\d{1,3}.0.1",
+        #                               ])
+        # destinations[7] = Destination(id=7,
+        #                               name="Digital Ocean",
+        #                               route_table="rdony",
+        #                               route_rule=[
+        #                                   ['ip', 'route', 'add', 'default', 'dev', 'grel']
+        #                               ],
+        #                               allow_ips=[
+        #                                   "10.*"
+        #                               ],
+        #                               disallow_ips=[
+        #                                   "10.\d{1,3}.0.1",
+        #                               ])
+        # destinations[8] = Destination(id=8,
+        #                               name="Digital Ocean IPV6",
+        #                               route_table="rdo6ny",
+        #                               route_rule=[
+        #                                   ['ip', 'route', 'add', 'default', 'dev', 'gre6l']
+        #                               ],
+        #                               allow_ips=[
+        #                                   "10.*"
+        #                               ],
+        #                               disallow_ips=[
+        #                                   "10.\d{1,3}.0.1",
+        #                               ])
+        # destinations[9] = Destination(id=9,
+        #                               name="Aliyun",
+        #                               route_table="rcnal",
+        #                               route_rule=[
+        #                                   ['ip', 'route', 'add', 'default', 'dev', 'grealiyun']
+        #                               ],
+        #                               allow_ips=[
+        #                                   "10.20.1.*",
+        #                                   "10.20.3.*"
+        #                               ],
+        #                               disallow_ips=[
+        #                                   "10.\d{1,3}.0.1",
+        #                               ])
+        # destinations[10] = Destination(id=10,
+        #                                name="Online France",
+        #                                route_table="ronfr",
+        #                                route_rule=[
+        #                                    ['ip', 'route', 'add', 'default', 'dev', 'gref']
+        #                                ],
+        #                                allow_ips=[
+        #                                    "10.*",
+        #                                ],
+        #                                disallow_ips=[
+        #                                    "10.\d{1,3}.0.1",
+        #                                ])
         for destination in destinations.itervalues():
             destination.create()
+
+    def _get_username(self, ip):
+        result = self.db.execute(
+            "SELECT username FROM radacct WHERE framedipaddress = %s ORDER BY acctupdatetime DESC LIMIT 1", (ip,))
+        if not result:
+            return None
+        else:
+            return result[0]['username']
+
+    def _get_allow_dest(self, name):
+        result = self.db.execute(
+            "SELECT DISTINCT outer_id FROM groupouter JOIN usergroup USING (groupname) WHERE username = %s ORDER BY outer_id;",
+            (name,))
+        return list(result)
 
     def on_get(self, req, resp):
         resp.status = falcon.HTTP_200
@@ -394,9 +421,13 @@ class WebService:
             destination_table = destination_table[len(destination_table) - 2]
         p.wait()
         allow_destination = []
+        name = self._get_username(ip)
+        dest = []
+        if name:
+            dest = self._get_allow_dest(name)
         global destinations
         for destination in destinations.itervalues():
-            if destination.test_ip(ip):
+            if destination.test_ip(ip) or (destination.ip in dest):
                 allow_destination.append({
                     'id': destination.id,
                     'name': destination.name

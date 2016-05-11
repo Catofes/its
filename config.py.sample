@@ -1,0 +1,11 @@
+check_url = [']
+accounts = [['aaa', 'aaa', 0]]
+db_user = ""
+db_passwd = ""
+db_host = "127.0.0.1"
+db_port = 5432
+db_db = ""
+db_mincached = 5
+db_maxcached = 40
+db_maxshared = 40
+db_maxconnections = 40
