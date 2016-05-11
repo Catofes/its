@@ -243,7 +243,7 @@ destinations = {}
 
 class ChangeNet:
     @staticmethod
-    def update(ip, destination_id):
+    def update(ip, destination_id, name):
         global destinations
         if not ip:
             return False
@@ -253,7 +253,7 @@ class ChangeNet:
         if destination_id not in destinations:
             return False
         destination = destinations[destination_id]
-        if not destination.test_ip(ip):
+        if not destination.test_ip(ip, name):
             return False
         p = subprocess.Popen(['ip', 'rule', 'del', 'from', ip])
         p.wait()
@@ -284,7 +284,7 @@ class WebService:
         result = self.db.execute(
             "SELECT username FROM radacct WHERE framedipaddress = %s ORDER BY acctupdatetime DESC LIMIT 1", (ip,))
         if not result:
-            return None
+            return ""
         else:
             return result[0]['username']
 
@@ -346,11 +346,12 @@ class WebService:
 
     def on_put(self, req, resp):
         ip = req.get_header("X-Real-IP")
+        name = self._get_username(ip)
         if not ip:
             return falcon.HTTP_400
         if not req.get_param("dest"):
             return falcon.HTTP_400
-        if not ChangeNet.update(ip, req.get_param("dest")):
+        if not ChangeNet.update(ip, req.get_param("dest"), name):
             return falcon.HTTP_400
         return falcon.HTTP_200
 
