@@ -348,12 +348,15 @@ class WebService:
         ip = req.get_header("X-Real-IP")
         name = self._get_username(ip)
         if not ip:
-            return falcon.HTTP_400
+            resp.status = falcon.HTTP_400
+            return
         if not req.get_param("dest"):
-            return falcon.HTTP_400
+            resp.status = falcon.HTTP_400
+            return
         if not ChangeNet.update(ip, req.get_param("dest"), name):
-            return falcon.HTTP_400
-        return falcon.HTTP_200
+            resp.status = falcon.HTTP_400
+            return
+        return
 
     def on_delete(self, req, resp):
         if 'key' not in req.params.keys():
