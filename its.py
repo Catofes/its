@@ -427,7 +427,7 @@ class WebService:
             dest = self._get_allow_dest(name)
         global destinations
         for destination in destinations.itervalues():
-            if destination.test_ip(ip) or (destination.ip in dest):
+            if destination.test_ip(ip) or (destination.id in dest):
                 allow_destination.append({
                     'id': destination.id,
                     'name': destination.name
