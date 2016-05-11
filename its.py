@@ -261,7 +261,7 @@ class WebService:
         self.its = its
         global destinations
         self.db = database.RDateBasePool()
-        results = self.db.execute('SELECT * FROM outer;', ())
+        results = self.db.execute('SELECT * FROM "outer";', ())
         for dest in results:
             destinations[dest['id']] = Destination(
                 name=dest['name'],
