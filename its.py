@@ -259,6 +259,8 @@ class ChangeNet:
         p.wait()
         p = subprocess.Popen(['ip', 'rule', 'add', 'from', ip, 'lookup', destination.route_table, 'pref', '1000'])
         p.wait()
+        systemd.journal.send(time.strftime('%Y-%m-%d  %H:%M:%S  ', time.localtime(time.time())) +
+                             str(name) + " With IP " + str(ip) + " Change to Dest " + str(destination.name))
         return True
 
 
