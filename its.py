@@ -9,11 +9,9 @@ import math
 import threading
 import falcon
 import json
-import systemd.journal
 import subprocess
 import psycopg2
 from wsgiref import simple_server
-
 import config
 import database
 
@@ -101,13 +99,13 @@ class ITS:
             )
         except Exception as e:
             self.last_request_result = False
-            systemd.journal.send(time.strftime('%Y-%m-%d  %H:%M:%S  ', time.localtime(self.last_check_time)) +
+            print(time.strftime('%Y-%m-%d  %H:%M:%S  ', time.localtime(self.last_check_time)) +
                                  account.name + "   Connect Request Sent Error." + e.message)
             return False
         self.last_request_response = resp.read().decode('GB2312')
         if re.search(ur'今天不能再使用客户端', self.last_request_response, re.UNICODE):
             account.connect_limit_reach = True
-            systemd.journal.send(time.strftime('%Y-%m-%d  %H:%M:%S  ', time.localtime(self.last_check_time)) +
+            print(time.strftime('%Y-%m-%d  %H:%M:%S  ', time.localtime(self.last_check_time)) +
                                  account.name + "   Reach Daily API Limit.")
             self.last_check_result = False
             return False
@@ -116,7 +114,7 @@ class ITS:
             self.last_check_result = False
             return False
         self.last_check_result = True
-        systemd.journal.send(time.strftime('%Y-%m-%d  %H:%M:%S  ', time.localtime(self.last_check_time)) +
+        print(time.strftime('%Y-%m-%d  %H:%M:%S  ', time.localtime(self.last_check_time)) +
                              account.name + "   Connect Request Sent Without Error.")
         return True
 
@@ -135,10 +133,10 @@ class ITS:
                 ), timeout=5
             )
         except Exception as e:
-            systemd.journal.send(time.strftime('%Y-%m-%d  %H:%M:%S  ', time.localtime(self.last_check_time)) +
+            print(time.strftime('%Y-%m-%d  %H:%M:%S  ', time.localtime(self.last_check_time)) +
                                  account.name + "   Disconnectall Request Sent Error." + e.message)
             return False
-        systemd.journal.send(time.strftime('%Y-%m-%d  %H:%M:%S  ', time.localtime(self.last_check_time)) +
+        print(time.strftime('%Y-%m-%d  %H:%M:%S  ', time.localtime(self.last_check_time)) +
                              account.name + "   Disconnectall Request Sent Without Error.")
         return True
 
@@ -157,7 +155,7 @@ class ITS:
             break
         self.last_check_result = last_check_result
         if not self.last_check_result:
-            systemd.journal.send(time.strftime('%Y-%m-%d  %H:%M:%S  ', time.localtime(self.last_check_time)) +
+            print(time.strftime('%Y-%m-%d  %H:%M:%S  ', time.localtime(self.last_check_time)) +
                                  "Detect Connection Lost. Try to reconnect.")
             return False
         return True
@@ -259,7 +257,7 @@ class ChangeNet:
         p.wait()
         p = subprocess.Popen(['ip', 'rule', 'add', 'from', ip, 'lookup', destination.route_table, 'pref', '1000'])
         p.wait()
-        systemd.journal.send(time.strftime('%Y-%m-%d  %H:%M:%S  ', time.localtime(time.time())) +
+        print(time.strftime('%Y-%m-%d  %H:%M:%S  ', time.localtime(time.time())) +
                              str(name) + " With IP " + str(ip) + " Change to Dest " + str(destination.name))
         return True
 
