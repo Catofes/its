@@ -8,4 +8,4 @@ COPY . .
 
 RUN pip install -r requirements.txt
 
-CMD ["python", "its.py"]
+CMD ["python","-u","its.py"]
